@@ -11,12 +11,16 @@ RUN groupadd -r django && useradd -d /opt/app -r -g django django \
 
 # Устанавливаем poetry
 COPY pyproject.toml poetry.lock ./
+
 RUN pip install poetry && \
     poetry config virtualenvs.in-project true && \
     poetry install --no-root --without dev
 
-# Копируем все файлы проекта
-COPY . .
+# Копируем папку envs
+COPY envs /opt/envs
+
+# Копируем все файлы проекта из папки app
+COPY app/ /opt/app
 
 # Сбор статических файлов, используя виртуальное окружение, созданное Poetry
 RUN mkdir /opt/app/static && mkdir /opt/app/uploads && poetry run python ./manage.py collectstatic --noinput

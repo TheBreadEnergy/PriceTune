@@ -1,9 +1,13 @@
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+CURRENT_DIR = Path(__file__).resolve().parent
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file="envs/.env")
+    model_config = SettingsConfigDict(env_file=str(CURRENT_DIR.parent.parent / "envs/.env"))
 
     DEBUG: bool = Field(False, env="DEBUG")
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
