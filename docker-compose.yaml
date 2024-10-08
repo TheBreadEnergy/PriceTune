@@ -1,16 +1,44 @@
 version: '3.9'
 
 services:
+  app:
+    build: .
+    image: price-tune:prod
+    container_name: price-tune
+    depends_on:
+      - postgres
+    env_file:
+      - envs/.env
+    expose:
+      - "8000"
+    volumes:
+      - price-tune-static:/opt/app/static
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "433:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - price-tune-static:/opt/app/static
+    restart: unless-stopped
+
   postgres:
     image: postgres:16.4-bullseye
     container_name: postgres
-    restart: unless-stopped
     env_file:
       - envs/.env.docker.postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  price-tune-static:
