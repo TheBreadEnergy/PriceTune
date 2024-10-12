@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from app.product.models import Favicon, GroupProduct, Market, MessageTelegram, OriginCountry, Product, ProductPrice
+from .models import Favicon, GroupProduct, Market, MessageTelegram, OriginCountry, Product, ProductPrice
 
 
 # Admin registrations
