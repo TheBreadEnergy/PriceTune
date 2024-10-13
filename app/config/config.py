@@ -19,5 +19,8 @@ class Settings(BaseSettings):
     DB_PASSWORD: str = Field(..., env="DB_PASSWORD")
     DB_PORT: str = Field(5432, env="DB_PORT")
 
+    TELEGRAM_BOT_TOKEN: str = Field(..., env="TELEGRAM_BOT_TOKEN")
+    TELEGRAM_CHAT_ID: int = Field(..., env="TELEGRAM_CHAT_ID")
+
 
 settings = Settings()

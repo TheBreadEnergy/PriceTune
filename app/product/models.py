@@ -69,6 +69,7 @@ class Market(BaseModel):
 class GroupProduct(BaseModel):
     idx = models.IntegerField(help_text="Индекс сортировки группового продукта")
     name = models.CharField(max_length=255, help_text="Название группы продукта")
+    # description_end = models.CharField(max_length=1024, null=True, blank=True, help_text="Описание в конце")
     favicon = models.ForeignKey(
         Favicon, on_delete=models.SET_NULL, null=True, blank=True, help_text="Ссылка на favicon группового продукта"
     )
@@ -103,6 +104,15 @@ class GroupProduct(BaseModel):
             raise ValidationError({"message": "Главные группы должны иметь связанное сообщение Telegram."})
         if self.parent is not None and self.message:
             raise ValidationError({"message": "Подгруппы не должны иметь связанного сообщения Telegram."})
+
+    def find_top_parent(self):
+        """
+        Рекурсивно находит самого верхнего родителя группы (группу, у которой нет родителя).
+        """
+        group = self
+        while group.parent is not None:
+            group = group.parent
+        return group
 
 
 class Product(BaseModel):
