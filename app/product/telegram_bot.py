@@ -1,6 +1,8 @@
-from telegram import Bot
+import logging
 
-from app.config.config import settings
+from telegram import Bot, error
+
+logger = logging.getLogger("django")
 
 
 class TelegramBot:
@@ -21,7 +23,12 @@ class TelegramBot:
         :param message_id: Идентификатор сообщения, которое нужно отредактировать.
         :param new_text: Новый текст для сообщения.
         """
-        await self.bot.edit_message_text(chat_id=self.chat_id, message_id=message_id, text=new_text)
-
-
-telegram_bot = TelegramBot(token=settings.TELEGRAM_BOT_TOKEN, chat_id=settings.TELEGRAM_CHAT_ID)
+        try:
+            await self.bot.edit_message_text(chat_id=self.chat_id, message_id=message_id, text=new_text)
+        except error.BadRequest as e:
+            if "Message is not modified" in str(e):
+                logger.info(f"Сообщение с ID {message_id} не изменено: новое содержание идентично текущему.")
+            else:
+                logger.error(f"Ошибка при редактировании сообщения с ID {message_id}: {str(e)}", exc_info=True)
+        except Exception as e:
+            logger.error(f"Неизвестная ошибка при редактировании сообщения с ID {message_id}: {str(e)}")

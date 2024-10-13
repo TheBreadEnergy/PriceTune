@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.db.models import Max
 
 
 class BaseModel(models.Model):
@@ -15,6 +16,7 @@ class BaseModel(models.Model):
 
 
 class MessageTelegram(BaseModel):
+    name = models.CharField(max_length=255, help_text="Название сообщения")
     value = models.BigIntegerField(unique=True, help_text="Уникальный идентификатор сообщения Telegram")
 
     class Meta:
@@ -23,7 +25,7 @@ class MessageTelegram(BaseModel):
         verbose_name_plural = "Сообщения Telegram"
 
     def __str__(self):
-        return f"{self.value}"
+        return f"{self.name} ({self.value})"
 
 
 class Favicon(BaseModel):
@@ -52,10 +54,18 @@ class OriginCountry(BaseModel):
         return f"{self.name} ({self.favicon})"
 
 
+class MarketTag(models.TextChoices):
+    TELEGRAM = "telegram", "Telegram"
+    SITE = "site", "Site"
+    AVITO = "avito", "Avito"
+    OZON = "ozon", "Ozon"
+    YANDEX_MARKET = "yandex_market", "YandexMarket"
+
+
 class Market(BaseModel):
     name = models.CharField(max_length=255, help_text="Название магазина")
     price_multiplier = models.FloatField(default=1, help_text="Коэффициент ценообразования")
-    env = models.CharField(max_length=255, null=True, blank=True, help_text="Название env для api")
+    tag = models.CharField(max_length=16, choices=MarketTag.choices, help_text="Тег магазина")
 
     class Meta:
         db_table = "market"
@@ -69,7 +79,8 @@ class Market(BaseModel):
 class GroupProduct(BaseModel):
     idx = models.IntegerField(help_text="Индекс сортировки группового продукта")
     name = models.CharField(max_length=255, help_text="Название группы продукта")
-    # description_end = models.CharField(max_length=1024, null=True, blank=True, help_text="Описание в конце")
+    is_show_name = models.BooleanField(default=True, help_text="Отображать название группы?")
+    description_end = models.TextField(max_length=1024, null=True, blank=True, help_text="Описание в конце")
     favicon = models.ForeignKey(
         Favicon, on_delete=models.SET_NULL, null=True, blank=True, help_text="Ссылка на favicon группового продукта"
     )
@@ -96,6 +107,24 @@ class GroupProduct(BaseModel):
 
     def __str__(self):
         return f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        # Если idx не задан, то автоматически назначаем его
+        if self.idx is None:
+            if self.parent:
+                # Найти максимальный idx среди подгрупп текущего родителя
+                max_idx = GroupProduct.objects.filter(parent=self.parent).aggregate(Max("idx"))["idx__max"]
+                if max_idx is None:
+                    max_idx = 0
+                self.idx = max_idx + 1
+            else:
+                # Если это корневая группа, то аналогично ищем максимальный idx среди корневых групп
+                max_idx = GroupProduct.objects.filter(parent__isnull=True).aggregate(Max("idx"))["idx__max"]
+                if max_idx is None:
+                    max_idx = 0
+                self.idx = max_idx + 1
+
+        super().save(*args, **kwargs)
 
     def clean(self):
         from django.core.exceptions import ValidationError

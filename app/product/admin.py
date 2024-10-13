@@ -1,3 +1,4 @@
+import nested_admin
 from django.contrib import admin, messages
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path
@@ -10,8 +11,11 @@ from .utils import publish_to_all
 @admin.register(MessageTelegram)
 class MessageTelegramAdmin(admin.ModelAdmin):
     ordering = ["created"]
-    list_display = ("value", "updated")
-    search_fields = ("value",)
+    list_display = ("name", "value", "updated")
+    search_fields = (
+        "name",
+        "value",
+    )
 
 
 @admin.register(Favicon)
@@ -81,8 +85,38 @@ class ProductAdmin(admin.ModelAdmin):
         return redirect("admin:product_product_change", object_id=object_id)
 
 
+class Sub2GroupInline(nested_admin.NestedStackedInline):
+    ordering = ["idx"]
+    exclude = ["message"]
+    model = GroupProduct
+    fk_name = "parent"
+    extra = 0
+    verbose_name = "Подгруппа второго уровня"
+    verbose_name_plural = "Подгруппы второго уровня"
+
+
+class SubGroupInline(nested_admin.NestedStackedInline):
+    inlines = [Sub2GroupInline]
+    ordering = ["idx"]
+    exclude = ["message"]
+    model = GroupProduct
+    fk_name = "parent"
+    extra = 1
+    verbose_name = "Подгруппа"
+    verbose_name_plural = "Подгруппы"
+
+
 @admin.register(GroupProduct)
-class GroupProductAdmin(admin.ModelAdmin):
+class GroupProductAdmin(nested_admin.NestedModelAdmin):
+    inlines = [SubGroupInline]
     ordering = ["created"]
+    exclude = ["parent"]
     list_display = ("name", "favicon", "updated")
     search_fields = ("name",)
+
+    def get_queryset(self, request):
+        """
+        Переопределяем queryset, чтобы выводить только верхние группы, у которых нет родителя.
+        """
+        qs = super().get_queryset(request)
+        return qs.filter(parent__isnull=True)
