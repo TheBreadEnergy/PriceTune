@@ -41,7 +41,7 @@ class Favicon(BaseModel):
 
 class OriginCountry(BaseModel):
     name = models.CharField(max_length=255, help_text="Название страны")
-    favicon = models.ForeignKey(Favicon, on_delete=models.CASCADE, help_text="favicon страны")
+    favicon = models.CharField(max_length=255, help_text="favicon")
 
     class Meta:
         db_table = "origin_country"
@@ -49,7 +49,7 @@ class OriginCountry(BaseModel):
         verbose_name_plural = "Страны"
 
     def __str__(self):
-        return f"{self.name} ({self.favicon.value})"
+        return f"{self.name} ({self.favicon})"
 
 
 class Market(BaseModel):
@@ -66,6 +66,45 @@ class Market(BaseModel):
         return f"{self.name}"
 
 
+class GroupProduct(BaseModel):
+    idx = models.IntegerField(help_text="Индекс сортировки группового продукта")
+    name = models.CharField(max_length=255, help_text="Название группы продукта")
+    favicon = models.ForeignKey(
+        Favicon, on_delete=models.SET_NULL, null=True, blank=True, help_text="Ссылка на favicon группового продукта"
+    )
+    message = models.ForeignKey(
+        MessageTelegram,
+        on_delete=models.SET_NULL,
+        null=True,  # Позволяет быть NULL для подгрупп
+        blank=True,  # Позволяет оставлять поле пустым в формах
+        help_text="Ссылка на сообщение Telegram (только для главных групп)",
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="children",
+        help_text="Родительская группа (если есть)",
+    )
+
+    class Meta:
+        db_table = "group_product"
+        verbose_name = "Группа продукта"
+        verbose_name_plural = "Группы продуктов"
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.parent is None and not self.message:
+            raise ValidationError({"message": "Главные группы должны иметь связанное сообщение Telegram."})
+        if self.parent is not None and self.message:
+            raise ValidationError({"message": "Подгруппы не должны иметь связанного сообщения Telegram."})
+
+
 class Product(BaseModel):
     idx = models.IntegerField(help_text="Индекс сортировки продукта")
     name = models.CharField(max_length=255, help_text="Название продукта")
@@ -76,26 +115,14 @@ class Product(BaseModel):
         OriginCountry, on_delete=models.SET_NULL, null=True, blank=True, help_text="Страна продукта"
     )
     favicon = models.ForeignKey(Favicon, on_delete=models.SET_NULL, null=True, blank=True, help_text="Favicon продукта")
+    group = models.ForeignKey(
+        GroupProduct, on_delete=models.PROTECT, related_name="products", help_text="Группа продукта"
+    )
 
     class Meta:
         db_table = "product"
         verbose_name = "Продукт"
         verbose_name_plural = "Продукты"
-
-    def __str__(self):
-        return f"{self.name}"
-
-
-class GroupProduct(BaseModel):
-    idx = models.IntegerField(help_text="Индекс сортировки группового продукта")
-    name = models.CharField(max_length=255, help_text="Название группы продукта")
-    favicon = models.ForeignKey(Favicon, on_delete=models.CASCADE, help_text="Ссылка на favicon группового продукта")
-    message = models.ForeignKey(MessageTelegram, on_delete=models.CASCADE, help_text="Ссылка на сообщение Telegram")
-
-    class Meta:
-        db_table = "group_product"
-        verbose_name = "Группа продукта"
-        verbose_name_plural = "Группа продуктов"
 
     def __str__(self):
         return f"{self.name}"
