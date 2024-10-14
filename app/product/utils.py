@@ -23,9 +23,7 @@ def generate_header(group):
             f"{group.favicon.value if group.favicon else ''} "
             f"{group.name} {group.favicon.value if group.favicon else ''}"
         )
-        title_length = len(group.name) + (8 if group.favicon else 0)
-        filler_length = (60 - title_length) // 2
-        return f"{'•' * filler_length}{header}{'•' * filler_length}\n\n"
+        return f"{header:•^44}\n\n"
     return ""
 
 
