@@ -1,10 +1,15 @@
 import nested_admin
+from config.config import settings
 from django.contrib import admin, messages
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path
 
 from .models import Favicon, GroupProduct, Market, MessageTelegram, OriginCountry, Product, ProductPrice
 from .utils import publish_to_all
+
+admin.site.site_header = settings.NAME_SHOP
+admin.site.site_title = settings.NAME_SHOP
+admin.site.index_title = f"Добро пожаловать в {settings.NAME_SHOP}"
 
 
 # Admin registrations

@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
     ALLOWED_HOSTS: list[str] = Field(default=["localhost"], env="ALLOWED_HOSTS")
 
+    NAME_SHOP: str = Field(..., env="NAME_SHOP")
+
     DB_NAME: str = Field(..., env="DB_NAME")
     DB_USER: str = Field(..., env="DB_USER")
     DB_HOST: str = Field("localhost", env="DB_HOST")
