@@ -168,6 +168,54 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-js-asset"
+version = "2.2.0"
+description = "script tag with additional attributes for django.forms.Media"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django_js_asset-2.2.0-py3-none-any.whl", hash = "sha256:7ef3e858e13d06f10799b56eea62b1e76706f42cf4e709be4e13356bc0ae30d8"},
+    {file = "django_js_asset-2.2.0.tar.gz", hash = "sha256:0c57a82cae2317e83951d956110ce847f58ff0cdc24e314dbc18b35033917e94"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+
+[package.extras]
+tests = ["coverage"]
+
+[[package]]
+name = "django-mptt"
+version = "0.16.0"
+description = "Utilities for implementing Modified Preorder Tree Traversal with your Django Models and working with trees of Model instances."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "django_mptt-0.16.0-py3-none-any.whl", hash = "sha256:8716849ba3318d94e2e100ed0923a05c1ffdf8195f8472b690dbaf737d2af3b5"},
+    {file = "django_mptt-0.16.0.tar.gz", hash = "sha256:56c9606bf0b329b5f5afd55dd8bfd073612ea1d5999b10903b09de62bee84c8e"},
+]
+
+[package.dependencies]
+django-js-asset = "*"
+
+[package.extras]
+tests = ["coverage[toml]", "mock-django"]
+
+[[package]]
+name = "django-mptt-admin"
+version = "2.7.0"
+description = "Django-mptt-admin provides a nice Django Admin interface for Mptt models"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django_mptt_admin-2.7.0-py2.py3-none-any.whl", hash = "sha256:e5a1a9a45eef8d3528c64fc6f4ed2ef22f84d6780eed2b54507e330dbd24c3a9"},
+    {file = "django_mptt_admin-2.7.0.tar.gz", hash = "sha256:3781809f67da86ce07d23f819f78e0682f86b4d850722c6ff2ffae49d83a8e3f"},
+]
+
+[package.dependencies]
+django-mptt = "*"
+
+[[package]]
 name = "django-nested-admin"
 version = "4.1.1"
 description = "Django admin classes that allow for nested inlines"
@@ -880,4 +928,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "f3746d4d3807c70a4bf3a359bf708d4b6244f17ac68a4198ceef3d32f4afd7d7"
+content-hash = "2a8752ccd3a54d147a0bf6312e1dadfcfae8e47b4a4a31fa350322924120574a"

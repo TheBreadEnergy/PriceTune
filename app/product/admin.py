@@ -1,8 +1,10 @@
 import nested_admin
 from config.config import settings
+from django import forms
 from django.contrib import admin, messages
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path
+from mptt.forms import TreeNodeChoiceField
 
 from .models import Favicon, GroupProduct, Market, MessageTelegram, OriginCountry, Product, ProductPrice
 from .utils import publish_to_all
@@ -52,8 +54,17 @@ class ProductPriceInline(admin.TabularInline):
     extra = 1
 
 
+class ProductForm(forms.ModelForm):
+    group = TreeNodeChoiceField(queryset=GroupProduct.objects.order_by("idx"))
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductForm  # Подключаем форму с древовидным виджетом
     inlines = [ProductPriceInline]
     ordering = ["created"]
     list_display = ("name", "country", "is_hot", "is_new", "waiting_delivery", "updated")
@@ -90,30 +101,42 @@ class ProductAdmin(admin.ModelAdmin):
         return redirect("admin:product_product_change", object_id=object_id)
 
 
-class Sub2GroupInline(nested_admin.NestedStackedInline):
-    ordering = ["idx"]
-    exclude = ["message"]
+class SubGroupProductForm(forms.ModelForm):
+    class Meta:
+        model = GroupProduct
+        fields = "__all__"
+        widgets = {
+            "description_end": forms.Textarea(attrs={"rows": 4, "cols": 40}),
+        }
+
+
+class Sub2GroupInline(nested_admin.NestedTabularInline):
+    form = SubGroupProductForm
     model = GroupProduct
     fk_name = "parent"
     extra = 0
     verbose_name = "Подгруппа второго уровня"
     verbose_name_plural = "Подгруппы второго уровня"
-
-
-class SubGroupInline(nested_admin.NestedStackedInline):
-    inlines = [Sub2GroupInline]
     ordering = ["idx"]
     exclude = ["message"]
+
+
+class SubGroupInline(nested_admin.NestedTabularInline):
+    form = SubGroupProductForm
+    inlines = [Sub2GroupInline]
     model = GroupProduct
     fk_name = "parent"
-    extra = 1
+    extra = 0
     verbose_name = "Подгруппа"
     verbose_name_plural = "Подгруппы"
+    ordering = ["idx"]
+    exclude = ["message"]
 
 
 @admin.register(GroupProduct)
 class GroupProductAdmin(nested_admin.NestedModelAdmin):
     inlines = [SubGroupInline]
+    extra = 0
     ordering = ["created"]
     exclude = ["parent"]
     list_display = ("name", "favicon", "updated")
