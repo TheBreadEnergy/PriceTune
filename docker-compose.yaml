@@ -16,7 +16,9 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     container_name: nginx
     depends_on:
       - app
@@ -24,13 +26,12 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.template.conf:/etc/nginx/nginx.template.conf
-      - ./nginx/ssl:/etc/nginx/ssl
       - price-tune-static:/opt/app/static
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
     env_file:
       - envs/.env.docker.nginx
     restart: unless-stopped
-    command: /bin/sh -c "envsubst '$$SERVER_NAME' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
 
   postgres:
     image: postgres:16.4-bullseye
@@ -46,3 +47,5 @@ services:
 volumes:
   postgres_data:
   price-tune-static:
+  certbot-etc:
+  certbot-var:
