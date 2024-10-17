@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(False, env="DEBUG")
     SECRET_KEY: str = Field(..., env="SECRET_KEY")
     ALLOWED_HOSTS: list[str] = Field(default=["localhost"], env="ALLOWED_HOSTS")
+    CSRF_TRUSTED_ORIGINS: list[str] = Field(default=["http://localhost"], env="CSRF_TRUSTED_ORIGINS")
 
     NAME_SHOP: str = Field(..., env="NAME_SHOP")
 
