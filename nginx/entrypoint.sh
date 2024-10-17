@@ -9,6 +9,12 @@ else
     SSL_CERTIFICATE_KEY="/etc/nginx/ssl/server.key"
 fi
 
+# Проверяем, что переменные не пустые
+if [ -z "$SSL_CERTIFICATE" ] || [ -z "$SSL_CERTIFICATE_KEY" ]; then
+    echo "Ошибка: пути к сертификату или ключу не установлены."
+    exit 1
+fi
+
 # Подставляем значения в шаблон конфигурации
 envsubst '${SERVER_NAME} ${SSL_CERTIFICATE} ${SSL_CERTIFICATE_KEY}' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf
 
