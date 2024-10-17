@@ -9,14 +9,15 @@ else
     SSL_CERTIFICATE_KEY="/etc/nginx/ssl/server.key"
 fi
 
-# Проверяем, что переменные не пустые
-if [ -z "$SSL_CERTIFICATE" ] || [ -z "$SSL_CERTIFICATE_KEY" ]; then
-    echo "Ошибка: пути к сертификату или ключу не установлены."
-    exit 1
-fi
+# Выводим значение переменной SSL_CERTIFICATE для проверки
+echo "SSL_CERTIFICATE is set to: $SSL_CERTIFICATE"
+echo "SSL_CERTIFICATE_KEY is set to: $SSL_CERTIFICATE_KEY"
 
-# Подставляем значения в шаблон конфигурации
-envsubst '${SERVER_NAME} ${SSL_CERTIFICATE} ${SSL_CERTIFICATE_KEY}' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf
+# Подставляем значения вручную в конфигурацию Nginx
+sed -e "s|\${SERVER_NAME}|${SERVER_NAME}|g" \
+    -e "s|\${SSL_CERTIFICATE}|${SSL_CERTIFICATE}|g" \
+    -e "s|\${SSL_CERTIFICATE_KEY}|${SSL_CERTIFICATE_KEY}|g" \
+    /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf
 
 # Запуск Nginx
 nginx
@@ -30,7 +31,10 @@ if [ ! -f "/etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem" ]; then
         echo "Real certificate obtained, updating Nginx configuration..."
         SSL_CERTIFICATE="/etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem"
         SSL_CERTIFICATE_KEY="/etc/letsencrypt/live/${SERVER_NAME}/privkey.pem"
-        envsubst '${SERVER_NAME} ${SSL_CERTIFICATE} ${SSL_CERTIFICATE_KEY}' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf
+        sed -e "s|\${SERVER_NAME}|${SERVER_NAME}|g" \
+            -e "s|\${SSL_CERTIFICATE}|${SSL_CERTIFICATE}|g" \
+            -e "s|\${SSL_CERTIFICATE_KEY}|${SSL_CERTIFICATE_KEY}|g" \
+            /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf
         nginx -s reload
     fi
 fi
