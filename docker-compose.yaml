@@ -22,11 +22,15 @@ services:
       - app
     ports:
       - "80:80"
-      - "433:443"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.template.conf:/etc/nginx/nginx.template.conf
+      - ./nginx/ssl:/etc/nginx/ssl
       - price-tune-static:/opt/app/static
+    env_file:
+      - envs/.env.docker.nginx
     restart: unless-stopped
+    command: /bin/sh -c "envsubst '$$SERVER_NAME' < /etc/nginx/nginx.template.conf > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
 
   postgres:
     image: postgres:16.4-bullseye
