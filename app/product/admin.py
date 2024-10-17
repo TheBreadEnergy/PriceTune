@@ -55,7 +55,7 @@ class ProductPriceInline(admin.TabularInline):
 
 
 class ProductForm(forms.ModelForm):
-    group = TreeNodeChoiceField(queryset=GroupProduct.objects.order_by("idx"))
+    group = TreeNodeChoiceField(queryset=GroupProduct.objects.all())
 
     class Meta:
         model = Product

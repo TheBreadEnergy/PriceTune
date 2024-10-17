@@ -101,7 +101,7 @@ class GroupProduct(MPTTModel, BaseModel):
     )
 
     class MPTTMeta:
-        order_insertion_by = ["name"]
+        order_insertion_by = ["idx"]
 
     class Meta:
         db_table = "group_product"
