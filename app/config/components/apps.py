@@ -1,7 +1,10 @@
 INSTALLED_APPS = [
-    "simpleui",
     "nested_admin",
     "mptt",
+    "django_mptt_admin",
+]
+
+INSTALLED_APPS += [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

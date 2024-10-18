@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.db.models import Max
 from mptt.models import MPTTModel, TreeForeignKey
 
 
@@ -77,7 +78,7 @@ class Market(BaseModel):
 
 
 class GroupProduct(MPTTModel, BaseModel):
-    idx = models.IntegerField(help_text="Индекс сортировки группового продукта")
+    idx = models.PositiveIntegerField(default=1, help_text="Индекс сортировки группового продукта")
     name = models.CharField(max_length=255, help_text="Название группы продукта")
     is_show_name = models.BooleanField(default=False, help_text="Отображать название группы?")
     description_end = models.TextField(max_length=1024, null=True, blank=True, help_text="Описание в конце")
@@ -111,6 +112,41 @@ class GroupProduct(MPTTModel, BaseModel):
     def __str__(self):
         return f"{self.name}"
 
+    def save(self, *args, **kwargs):
+        # Если idx не задан, то автоматически назначаем его
+        if self.idx is None:
+            if self.parent:
+                # Найти максимальный idx среди подгрупп текущего родителя
+                max_idx = GroupProduct.objects.filter(parent=self.parent).aggregate(Max("idx"))["idx__max"]
+                if max_idx is None:
+                    max_idx = 0
+                self.idx = max_idx + 1
+            else:
+                # Если это корневая группа, то аналогично ищем максимальный idx среди корневых групп
+                max_idx = GroupProduct.objects.filter(parent__isnull=True).aggregate(Max("idx"))["idx__max"]
+                if max_idx is None:
+                    max_idx = 0
+                self.idx = max_idx + 1
+
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.parent is None and not self.message:
+            raise ValidationError({"message": "Главные группы должны иметь связанное сообщение Telegram."})
+        if self.parent is not None and self.message:
+            raise ValidationError({"message": "Подгруппы не должны иметь связанного сообщения Telegram."})
+
+    def find_top_parent(self):
+        """
+        Рекурсивно находит самого верхнего родителя группы (группу, у которой нет родителя).
+        """
+        group = self
+        while group.parent is not None:
+            group = group.parent
+        return group
+
 
 class Product(BaseModel):
     idx = models.IntegerField(help_text="Индекс сортировки продукта")
@@ -122,9 +158,7 @@ class Product(BaseModel):
         OriginCountry, on_delete=models.SET_NULL, null=True, blank=True, help_text="Страна продукта"
     )
     favicon = models.ForeignKey(Favicon, on_delete=models.SET_NULL, null=True, blank=True, help_text="Favicon продукта")
-    group = models.ForeignKey(
-        GroupProduct, on_delete=models.PROTECT, related_name="products", help_text="Группа продукта"
-    )
+    group = TreeForeignKey(GroupProduct, on_delete=models.PROTECT, related_name="products", help_text="Группа продукта")
 
     class Meta:
         db_table = "product"
