@@ -58,7 +58,10 @@ def generate_message(message_telegram):
                 flags += "🚚"
             product_prices = product.productprice_set.select_related("market").filter(market__tag=MarketTag.TELEGRAM)
             for price in product_prices:
-                message += f"{"🆕" if product.is_new else ""}{product.name} - {int(price.value)}{flags}\n"
+                message += (
+                    f"{product.favicon.value if product.favicon else ""}"
+                    f"{"🆕" if product.is_new else ""}{product.name} - {int(price.value)}{flags}\n"
+                )
 
         # Добавление подгрупп
         subgroups = group.children.all().order_by("idx")
