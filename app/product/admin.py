@@ -67,7 +67,7 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductForm  # Подключаем форму с древовидным виджетом
     inlines = [ProductPriceInline]
     ordering = ["created"]
-    list_display = ("name", "country", "is_hot", "is_new", "waiting_delivery", "updated")
+    list_display = ("name", "group", "country", "is_hot", "is_new", "waiting_delivery", "updated")
 
     search_fields = ("name",)
     list_filter = ("is_hot", "is_new", "waiting_delivery")
